@@ -1,0 +1,67 @@
+version: '3.9'
+
+services:
+  db:
+    image: mysql:5.7
+    container_name: mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: pwa0123
+    networks:
+      - network-shared
+    volumes:
+      - ./.docker:/var/lib/mysql
+    ports:
+      - 33063:3306
+  
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: phpmyadmin
+    restart: unless-stopped
+    ports:
+      - 8004:8081
+    environment:
+      - PMA_ARBITRARY=1
+      - PMA_HOST=db
+      - PMA_USER=root
+      - PMA_PASSWORD=pwa0123
+      - PMA_PORT=33063
+    links:
+      - db
+
+  redis:
+    image: redis:7.2.4-alpine
+    container_name: redis
+    restart: unless-stopped
+    ports:
+      - 63796:6379
+    environment:
+      - ALLOW_EMPTY_PASSWORD=yes
+
+  redisadmin:
+    container_name: redisadmin
+    restart: unless-stopped
+    hostname: redisadmin
+    image: rediscommander/redis-commander:latest
+    environment:
+      - REDIS_HOSTS=local:redis:63796
+    ports:
+      - 8006:8081
+    links:
+      - redis
+
+  mailhog:
+    image: mailhog/mailhog
+    container_name: mailhog
+    restart: unless-stopped
+    ports:
+      - 1025:1025
+      - 8005:8025
+
+volumes:
+  volume-shared:
+    driver: local
+
+networks:
+  network-shared:
+    driver: bridge
