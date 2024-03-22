@@ -3,7 +3,7 @@ version: '3.9'
 services:
   db:
     image: mysql:5.7
-    container_name: mysql
+    container_name: mysql_clinicas
     restart: unless-stopped
     environment:
       MYSQL_ROOT_PASSWORD: pwa0123
@@ -16,7 +16,7 @@ services:
   
   phpmyadmin:
     image: phpmyadmin/phpmyadmin
-    container_name: phpmyadmin
+    container_name: phpmyadmin_clinicas
     restart: unless-stopped
     ports:
       - 8004:8081
@@ -31,7 +31,7 @@ services:
 
   redis:
     image: redis:7.2.4-alpine
-    container_name: redis
+    container_name: redis_clinicas
     restart: unless-stopped
     ports:
       - 63796:6379
@@ -39,7 +39,7 @@ services:
       - ALLOW_EMPTY_PASSWORD=yes
 
   redisadmin:
-    container_name: redisadmin
+    container_name: redisadmin_clinicas
     restart: unless-stopped
     hostname: redisadmin
     image: rediscommander/redis-commander:latest
@@ -52,7 +52,7 @@ services:
 
   mailhog:
     image: mailhog/mailhog
-    container_name: mailhog
+    container_name: mailhog_clinicas
     restart: unless-stopped
     ports:
       - 1025:1025
