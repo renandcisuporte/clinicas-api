@@ -13,3 +13,92 @@ datasource db {
   url          = env("DATABASE_URL")
   relationMode = "prisma"
 }
+
+enum USER_ROULES {
+  root
+  master
+  admin
+  user
+}
+
+model User {
+  id          String      @id @default(cuid())
+  created_at  DateTime    @default(now())
+  updated_at  DateTime    @updatedAt
+  deleted_at  DateTime?
+  roules      USER_ROULES @default(master)
+  full_name   String
+  phone       String
+  email       String
+  password    String
+  cover_image String
+  actived_at  DateTime?
+
+  companies Company[]
+
+  @@map("users")
+}
+
+model Company {
+  id           String     @id @default(cuid())
+  created_at   DateTime   @default(now())
+  updated_at   DateTime   @updatedAt
+  deleted_at   DateTime?
+  user_id      String?
+  company      String
+  fantasy      String
+  phones       String
+  reason       String
+  cpf          String     @db.VarChar(20)
+  cnpj         String     @db.VarChar(20)
+  ie           String     @db.VarChar(20)
+  address      String     @db.VarChar(45)
+  neighborhood String     @db.VarChar(20)
+  complement   String     @db.VarChar(65)
+  city         String     @db.VarChar(40)
+  state        String     @db.VarChar(2)
+  zip_code     String     @db.VarChar(9)
+  logo_image   String
+  user         User?      @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  employees    Employee[]
+
+  @@index([user_id])
+  @@map("companies")
+}
+
+model Employee {
+  id          String    @id @default(cuid())
+  created_at  DateTime  @default(now())
+  updated_at  DateTime  @updatedAt
+  deleted_at  DateTime?
+  company_id  String?
+  full_name   String
+  cpf         String    @db.VarChar(20)
+  email       String    @db.VarChar(20)
+  phone       String    @db.VarChar(20)
+  address     String
+  zip_code    String
+  cover_image String?
+
+  company Company? @relation(fields: [company_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@index([company_id])
+  @@map("employees")
+}
+
+model Customer {
+  id         String    @id @default(cuid())
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
+  deleted_at DateTime?
+
+  full_name   String
+  cpf         String  @db.VarChar(20)
+  email       String  @db.VarChar(20)
+  phone       String  @db.VarChar(20)
+  address     String
+  zip_code    String
+  cover_image String?
+
+  @@map("customers")
+}
