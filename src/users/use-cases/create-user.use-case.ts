@@ -1,7 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { UserRepository } from '../repositories/user.repository';
 import { CreateUserDTO } from '../dtos/create-user.dto';
-// import { User } from '../entities/user.entity';
+import { UserRepository } from '../repositories/user.repository';
 
 @Injectable()
 export class CreateUserUseCase {
@@ -11,8 +10,6 @@ export class CreateUserUseCase {
   ) {}
 
   async execute(input: CreateUserDTO) {
-    // const user = new User(input);
-    await this.userRepo.createUser(input);
-    return input;
+    return await this.userRepo.createUser(input);
   }
 }
