@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { ForbiddenException, Inject, Injectable } from '@nestjs/common';
 import { CreateUserDTO } from '../dtos/create-user.dto';
 import { UserRepository } from '../repositories/user.repository';
 
@@ -10,6 +10,10 @@ export class CreateUserUseCase {
   ) {}
 
   async execute(input: CreateUserDTO) {
+    const isMacth = this.userRepo.isMatchUser(input.email);
+    if (isMacth) {
+      throw new ForbiddenException({ message: 'user already exists' });
+    }
     return await this.userRepo.createUser(input);
   }
 }
