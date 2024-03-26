@@ -7,21 +7,25 @@ import { UserEntity } from 'src/users/entities/user.entity';
 @Injectable()
 export class PrismaUserRepository implements UserRepository {
   constructor(private readonly prisma: PrismaService) {}
+  async loginUser(email: string): Promise<UserEntity | null> {
+    return await this.prisma.user.findFirst({
+      where: { email },
+    });
+  }
 
-  async isMatchUser(email: string): Promise<boolean> {
-    const isMacth = await this.prisma.user.count({
+  async alreadyExists(email: string): Promise<boolean> {
+    const agreggate = await this.prisma.user.count({
       where: {
         email,
       },
     });
-    return isMacth !== 0;
+
+    return agreggate > 0;
   }
 
   async createUser(input: CreateUserDTO): Promise<UserEntity> {
-    return new UserEntity(
-      await this.prisma.user.create({
-        data: input,
-      }),
-    );
+    return await this.prisma.user.create({
+      data: { ...input },
+    });
   }
 }
