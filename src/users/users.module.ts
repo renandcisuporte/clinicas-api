@@ -8,9 +8,12 @@ import { PrismaService } from 'src/database/prisma.service';
   controllers: [UsersWithUseCaseController],
   providers: [
     Logger,
-    CreateUserUseCase,
     PrismaService,
-    { provide: 'UserRepository', useClass: PrismaUserRepository },
+    CreateUserUseCase,
+    {
+      provide: 'UserRepository',
+      useClass: PrismaUserRepository,
+    },
   ],
 })
 export class UsersModule {}
