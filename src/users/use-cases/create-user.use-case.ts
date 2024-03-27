@@ -1,17 +1,12 @@
 import { ForbiddenException, Inject, Injectable } from '@nestjs/common';
 import { CreateUserDTO } from '../dtos/create-user.dto';
 import { UserRepository } from '../repositories/user.repository';
-import { Bcrypt } from 'src/utils/shared/bcrypt.shared';
+import { hash } from 'bcrypt';
 
 @Injectable()
 export class CreateUserUseCase {
-  constructor(
-    @Inject('UserRepository')
-    private readonly userRepo: UserRepository,
-
-    @Inject('Bcrypt')
-    private readonly bcrypt: Bcrypt,
-  ) {}
+  @Inject('UserRepository')
+  private readonly userRepo: UserRepository;
 
   async execute(input: CreateUserDTO) {
     const isMacth = await this.userRepo.alreadyExists(input.email);
@@ -19,7 +14,7 @@ export class CreateUserUseCase {
       throw new ForbiddenException({ message: 'user already exists' });
     }
 
-    const password = await this.bcrypt.hash(input.password);
+    const password = await hash(input.password, 10);
 
     return await this.userRepo.createUser({ ...input, password });
   }
