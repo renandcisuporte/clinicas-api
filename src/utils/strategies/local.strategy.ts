@@ -5,11 +5,11 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
-import { Strategy } from 'passport-local';
 import { AuthRepository } from 'src/auth/repositories/auth.repository';
+import { Strategy } from 'passport-local';
 
 @Injectable()
-export class LocalStrategy extends PassportStrategy(Strategy) {
+export class LocalStrategy extends PassportStrategy(Strategy, 'local') {
   @Inject('AuthRepository')
   private readonly authRepo: AuthRepository;
 
@@ -17,7 +17,6 @@ export class LocalStrategy extends PassportStrategy(Strategy) {
     super({
       usernameField: 'email',
       passwordField: 'password',
-      secretOrKey: process.env.JWT_SECRET_KEY,
     });
   }
 

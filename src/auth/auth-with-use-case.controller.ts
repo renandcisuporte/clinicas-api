@@ -1,20 +1,29 @@
 import { ApiOkResponse } from '@nestjs/swagger';
-import { Body, Controller, Inject, Post, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Post, Req, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import { AuthUserUseCase } from 'src/auth/use-cases/auth-user.use-case';
-import { AuthTokeDTO } from 'src/auth/dtos/auth-token.dto';
+import { LoginAuthUseCase } from 'src/auth/use-cases/login-auth.use-case';
+import { AuthEntity } from 'src/auth/entities/auth.entity';
+import { MeAuthUseCase } from './use-cases/me-auth.use-case';
 import { AuthDTO } from './dtos/auth.dto';
 
 @Controller('/api/v1/auth')
 export class AuthWithUseCaseController {
-  @Inject(AuthUserUseCase)
-  private readonly authUserUseCase: AuthUserUseCase;
+  constructor(
+    private readonly authUserUseCase: LoginAuthUseCase,
+    private readonly meUserUseCase: MeAuthUseCase,
+  ) {}
 
-  @ApiOkResponse({ type: AuthTokeDTO })
-  @UseGuards(AuthGuard('local'))
   @Post()
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  login(@Req() request: any, @Body() dto: AuthDTO) {
+  @UseGuards(AuthGuard('local'))
+  @ApiOkResponse({ type: AuthEntity })
+  async login(@Body() dto: AuthDTO, @Req() request: any): Promise<AuthEntity> {
     return this.authUserUseCase.execute(request.user);
+  }
+
+  @Get()
+  @UseGuards(AuthGuard('jwt'))
+  @ApiOkResponse({ type: AuthEntity })
+  async me(@Req() request: any): Promise<AuthEntity> {
+    return this.meUserUseCase.execute(request.user);
   }
 }

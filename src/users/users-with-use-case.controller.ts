@@ -1,4 +1,4 @@
-import { Body, Controller, Inject, Post } from '@nestjs/common';
+import { Body, Controller, Post } from '@nestjs/common';
 import { ApiOkResponse } from '@nestjs/swagger';
 
 import { CreateUserUseCase } from './use-cases/create-user.use-case';
@@ -7,8 +7,7 @@ import { UserEntity } from './entities/user.entity';
 
 @Controller('/api/v1/users')
 export class UsersWithUseCaseController {
-  @Inject(CreateUserUseCase)
-  private readonly createUserUseCase: CreateUserUseCase;
+  constructor(private readonly createUserUseCase: CreateUserUseCase) {}
 
   @Post()
   @ApiOkResponse({ type: UserEntity })

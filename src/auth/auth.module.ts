@@ -1,27 +1,32 @@
 import { Module } from '@nestjs/common';
+import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from '@nestjs/jwt';
+
 import { AuthWithUseCaseController } from 'src/auth/auth-with-use-case.controller';
 import { PrismaAuthRepository } from 'src/auth/repositories/prisma/auth.repository';
-import { LocalStrategy } from 'src/auth/strategies/local.strategy';
+import { LoginAuthUseCase } from 'src/auth/use-cases/login-auth.use-case';
+import { LocalStrategy } from 'src/utils/strategies/local.strategy';
+import { JwtStrategy } from 'src/utils/strategies/jwt.strategy';
 import { PrismaService } from 'src/database/prisma.service';
-import { AuthUserUseCase } from 'src/auth/use-cases/auth-user.use-case';
-import { JwtServiceShared } from 'src/utils/shared/utils/jwt.shared';
+import { MeAuthUseCase } from './use-cases/me-auth.use-case';
 
 @Module({
+  controllers: [AuthWithUseCaseController],
   imports: [
+    PassportModule,
     JwtModule.register({
-      privateKey: process.env.JWT_SECRET_KEY,
       signOptions: {
         expiresIn: process.env.JWT_EXPIRATION_TIME,
       },
+      privateKey: process.env.JWT_SECRET_KEY,
     }),
   ],
-  controllers: [AuthWithUseCaseController],
   providers: [
     PrismaService,
+    JwtStrategy,
     LocalStrategy,
-    AuthUserUseCase,
-    { provide: 'JwtService', useClass: JwtServiceShared },
+    LoginAuthUseCase,
+    MeAuthUseCase,
     { provide: 'AuthRepository', useClass: PrismaAuthRepository },
   ],
 })
