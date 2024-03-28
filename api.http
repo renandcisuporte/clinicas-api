@@ -33,6 +33,4 @@ Content-Type: {{contentType}}
 Authorization: {{bearerToken}}
 
 {
-  "email": "renan@dcisuporte.com.br",
-  "password": "234234"
 }

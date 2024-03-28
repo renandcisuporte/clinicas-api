@@ -9,6 +9,7 @@ import { LocalStrategy } from 'src/utils/strategies/local.strategy';
 import { JwtStrategy } from 'src/utils/strategies/jwt.strategy';
 import { PrismaService } from 'src/database/prisma.service';
 import { MeAuthUseCase } from './use-cases/me-auth.use-case';
+import { Logger } from 'src/utils/logger';
 
 @Module({
   controllers: [AuthWithUseCaseController],
@@ -22,6 +23,7 @@ import { MeAuthUseCase } from './use-cases/me-auth.use-case';
     }),
   ],
   providers: [
+    Logger,
     PrismaService,
     JwtStrategy,
     LocalStrategy,
