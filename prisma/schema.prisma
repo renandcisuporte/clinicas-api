@@ -1,0 +1,476 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider     = "mysql"
+  url          = env("DATABASE_URL")
+  relationMode = "prisma"
+}
+
+enum TYPE_DISCOUNT {
+  money
+  porcentage
+}
+
+enum USER_ROULES {
+  root
+  master
+  admin
+  user
+}
+
+model User {
+  id          String      @id @default(cuid())
+  created_at  DateTime    @default(now())
+  updated_at  DateTime    @updatedAt
+  deleted_at  DateTime?
+  roules      USER_ROULES @default(master)
+  full_name   String?
+  phone       String?
+  email       String
+  password    String
+  cover_image String?
+  actived_at  DateTime?
+
+  companies Company[]
+  stock     Stock[]
+
+  @@map("users")
+}
+
+model Company {
+  id           String    @id @default(cuid())
+  created_at   DateTime  @default(now())
+  updated_at   DateTime  @updatedAt
+  deleted_at   DateTime?
+  user_id      String?
+  company      String
+  fantasy      String
+  phones       String
+  reason       String
+  cpf          String    @db.VarChar(20)
+  cnpj         String    @db.VarChar(20)
+  ie           String    @db.VarChar(20)
+  address      String    @db.VarChar(45)
+  neighborhood String    @db.VarChar(20)
+  complement   String    @db.VarChar(65)
+  city         String    @db.VarChar(40)
+  state        String    @db.VarChar(2)
+  zip_code     String    @db.VarChar(9)
+  logo_image   String
+
+  user             User?              @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  employees        Employee[]
+  order            Order[]
+  room             Room[]
+  service          Service[]
+  category         Category[]
+  subCategory      SubCategory[]
+  product          Product[]
+  bleeding         Bleeding[]
+  bleedingGroup    BleedingGroup[]
+  bleedingSubGroup BleedingSubGroup[]
+  billsPay         BillsPay[]
+  billsRecived     BillsRecived[]
+  registerBox      RegisterBox[]
+  supplers         Supplers[]
+
+  @@index([user_id])
+  @@map("companies")
+}
+
+model Employee {
+  id          String    @id @default(cuid())
+  created_at  DateTime  @default(now())
+  updated_at  DateTime  @updatedAt
+  deleted_at  DateTime?
+  company_id  String?
+  full_name   String
+  cpf         String    @db.VarChar(20)
+  email       String    @db.VarChar(20)
+  phone       String    @db.VarChar(20)
+  address     String
+  zip_code    String
+  cover_image String?
+
+  company Company? @relation(fields: [company_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  order   Order[]
+
+  @@index([company_id])
+  @@map("employees")
+}
+
+model Customer {
+  id          String    @id @default(cuid())
+  created_at  DateTime  @default(now())
+  updated_at  DateTime  @updatedAt
+  deleted_at  DateTime?
+  full_name   String
+  cpf         String    @db.VarChar(20)
+  email       String    @db.VarChar(20)
+  phone       String    @db.VarChar(20)
+  address     String
+  zip_code    String
+  cover_image String?
+
+  order Order[]
+
+  @@map("customers")
+}
+
+model Order {
+  id          String    @id @default(cuid())
+  created_at  DateTime  @default(now())
+  updated_at  DateTime  @updatedAt
+  deleted_at  DateTime?
+  company_id  String?
+  employer_id String?
+  customer_id String?
+  room_id     String?
+  code        String?   @db.VarChar(20)
+
+  company      Company?       @relation(fields: [company_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  employer     Employee?      @relation(fields: [employer_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  customer     Customer?      @relation(fields: [customer_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  room         Room?          @relation(fields: [room_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  orderItem    OrderItem[]
+  orderPayment OrderPayment[]
+
+  @@index([company_id])
+  @@index([employer_id])
+  @@index([customer_id])
+  @@index([room_id])
+  @@map("orders")
+}
+
+model OrderItem {
+  id               String    @id @default(cuid())
+  created_at       DateTime  @default(now())
+  updated_at       DateTime  @updatedAt
+  deleted_at       DateTime?
+  order_id         String?
+  service_id       String?
+  product_id       String?
+  start_of_service DateTime?
+  end_of_service   DateTime?
+  quantity         Int       @default(0)
+  cost_price       Decimal   @default(0.00) @db.Decimal(10, 2)
+  sale_price       Decimal   @default(0.00) @db.Decimal(10, 2)
+
+  order   Order?   @relation(fields: [order_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  service Service? @relation(fields: [service_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  product Product? @relation(fields: [product_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@index([order_id])
+  @@index([service_id])
+  @@index([product_id])
+  @@map("orders_items")
+}
+
+model OrderPayment {
+  id            String        @id @default(cuid())
+  order_id      String?
+  payment_id    String?
+  price         Decimal       @default(0.00) @db.Decimal(10, 2)
+  discount      Decimal       @default(0.00) @db.Decimal(10, 2)
+  discount_type TYPE_DISCOUNT @default(porcentage)
+
+  order   Order?   @relation(fields: [order_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  payment Payment? @relation(fields: [payment_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@index([order_id])
+  @@index([payment_id])
+  @@map("orders_payments")
+}
+
+model Payment {
+  id            String        @id @default(cuid())
+  created_at    DateTime      @default(now())
+  updated_at    DateTime      @updatedAt
+  deleted_at    DateTime?
+  company_id    String?
+  payment       String
+  discount      Decimal       @default(0.00) @db.Decimal(10, 2)
+  discount_type TYPE_DISCOUNT @default(porcentage)
+  position      Int           @default(0)
+
+  orderPayment        OrderPayment[]
+  billsRecivedPayment BillsRecivedPayment[]
+  registerHistory     RegisterHistory[]
+
+  @@map("payments")
+}
+
+model Room {
+  id         String    @id @default(cuid())
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
+  deleted_at DateTime?
+  company_id String?
+  room       Int       @default(0)
+  name       String
+
+  order   Order[]
+  company Company? @relation(fields: [company_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@index([company_id])
+  @@map("rooms")
+}
+
+model Service {
+  id         String    @id @default(cuid())
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
+  deleted_at DateTime?
+  company_id String?
+  name       String
+  cost_price Decimal   @default(0.00) @db.Decimal(10, 2)
+  sale_price Decimal   @default(0.00) @db.Decimal(10, 2)
+
+  orderItem OrderItem[]
+  company   Company?    @relation(fields: [company_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@index([company_id])
+  @@map("services")
+}
+
+model Category {
+  id         String    @id @default(cuid())
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
+  deleted_at DateTime?
+  company_id String?
+  name       String
+
+  company Company? @relation(fields: [company_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@index([company_id])
+  @@map("categories")
+}
+
+model SubCategory {
+  id         String    @id @default(cuid())
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
+  deleted_at DateTime?
+  company_id String?
+  name       String
+
+  company Company? @relation(fields: [company_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@index([company_id])
+  @@map("subcategories")
+}
+
+model Product {
+  id          String        @id @default(cuid())
+  created_at  DateTime      @default(now())
+  updated_at  DateTime      @updatedAt
+  deleted_at  DateTime?
+  company_id  String?
+  name        String
+  stock       Int           @default(0)
+  cost_price  Decimal       @default(0.00) @db.Decimal(10, 2)
+  sale_price  Decimal       @default(0.00) @db.Decimal(10, 2)
+  profit      Decimal       @default(0.00) @db.Decimal(10, 2)
+  profit_type TYPE_DISCOUNT @default(porcentage)
+
+  orderItem OrderItem[]
+  company   Company?    @relation(fields: [company_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  stocks    Stock[]
+
+  @@index([company_id])
+  @@map("products")
+}
+
+model Stock {
+  created_at DateTime @id
+  user_id    String?
+  product_id String?
+  stock      Int      @default(0)
+  stock_in   Int      @default(0)
+
+  user    User?    @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  product Product? @relation(fields: [product_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@index([product_id])
+  @@index([user_id])
+  @@map("stocks")
+}
+
+model StockTransfer {
+  created_at    DateTime @id
+  user_id       String?
+  company_id    String?
+  company_to_id String?
+  product_id    String?
+  product_to_id String?
+  stock         Int      @default(0)
+  stock_to      Int      @default(0)
+
+  @@index([user_id])
+  @@index([product_id])
+  @@index([product_to_id])
+  @@index([company_id])
+  @@index([company_to_id])
+  @@map("stocks_transfer")
+}
+
+// (sangria)
+model Bleeding {
+  id         String    @id @default(cuid())
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
+  deleted_at DateTime?
+  company_id String?
+  name       String
+
+  company Company? @relation(fields: [company_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@map("bleeding")
+}
+
+model BleedingGroup {
+  id         String    @id @default(cuid())
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
+  deleted_at DateTime?
+  company_id String?
+  name       String
+
+  company Company? @relation(fields: [company_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@map("bleeding_group")
+}
+
+model BleedingSubGroup {
+  id         String    @id @default(cuid())
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
+  deleted_at DateTime?
+  company_id String?
+  name       String
+
+  company Company? @relation(fields: [company_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@map("bleeding_subgroup")
+}
+
+// (contas a pagar)
+model BillsPay {
+  id          String    @id @default(cuid())
+  created_at  DateTime  @default(now())
+  updated_at  DateTime  @updatedAt
+  deleted_at  DateTime?
+  company_id  String?
+  supplier_id String?
+  description String
+  date_pay    DateTime?
+  price       Decimal   @default(0.00) @db.Decimal(10, 2)
+
+  company  Company?  @relation(fields: [company_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  supplier Supplers? @relation(fields: [supplier_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@map("bills_pay")
+}
+
+// (contas a receber)
+model BillsRecived {
+  id         String    @id @default(cuid())
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
+  deleted_at DateTime?
+  company_id String?
+  order_id   String?
+  date_pay   DateTime?
+  price      Decimal   @default(0.00) @db.Decimal(10, 2)
+
+  company             Company?              @relation(fields: [company_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  billsRecivedPayment BillsRecivedPayment[]
+
+  @@map("bills_recived")
+}
+
+model BillsRecivedPayment {
+  id               String   @id @default(cuid())
+  created_at       DateTime @default(now())
+  bills_recived_id String?
+  payment_id       String?
+  price            Decimal  @default(0.00) @db.Decimal(10, 2)
+
+  billsRecived BillsRecived? @relation(fields: [bills_recived_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  payment      Payment?      @relation(fields: [payment_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@map("bills_recived_payments")
+}
+
+// (caixa)
+model RegisterBox {
+  id               String  @id @default(cuid())
+  company_id       String?
+  employeer_open   String?
+  employeer_closed String?
+  employeer_del    String?
+  open_balance     Decimal @default(0.00) @db.Decimal(10, 2)
+
+  company         Company?          @relation(fields: [company_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  registerHistory RegisterHistory[]
+
+  @@map("register_box")
+}
+
+model RegisterHistory {
+  id              String  @id @default(cuid())
+  register_box_id String?
+  payment_id      String?
+  amount          Decimal @default(0.00) @db.Decimal(10, 2)
+  amount_digit    Decimal @default(0.00) @db.Decimal(10, 2)
+
+  registerBox RegisterBox? @relation(fields: [register_box_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  payment     Payment?     @relation(fields: [payment_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@map("register_history")
+}
+
+model Supplers {
+  id           String    @id @default(cuid())
+  created_at   DateTime  @default(now())
+  updated_at   DateTime  @updatedAt
+  deleted_at   DateTime?
+  company_id   String?
+  company      String
+  fantasy      String
+  phones       String
+  reason       String
+  cpf          String    @db.VarChar(20)
+  cnpj         String    @db.VarChar(20)
+  ie           String    @db.VarChar(20)
+  address      String    @db.VarChar(45)
+  neighborhood String    @db.VarChar(20)
+  complement   String    @db.VarChar(65)
+  city         String    @db.VarChar(40)
+  state        String    @db.VarChar(2)
+  zip_code     String    @db.VarChar(9)
+
+  companySuppler Company?   @relation(fields: [company_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  billsPay       BillsPay[]
+
+  @@index([company_id])
+  @@map("supplers")
+}
+
+model Financial {
+  id         String    @id @default(cuid())
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
+  deleted_at DateTime?
+  company_id String?
+  name       String
+}
